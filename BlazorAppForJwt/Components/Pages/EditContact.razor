@@ -1,0 +1,78 @@
+﻿@page "/edit-contact/{id:int}"
+@inject HttpClient Http
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+<PageTitle>Edit Contact</PageTitle>
+
+<h3>Edit Contact</h3>
+
+@if (contact == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="contact" OnValidSubmit="UpdateContact">
+        <DataAnnotationsValidator />
+
+        <label>Name</label>
+        <InputText @bind-Value="contact.Name" />
+
+        <label>City</label>
+        <InputText @bind-Value="contact.City" />
+
+        <label>Email</label>
+        <InputText @bind-Value="contact.Email" />
+
+        <label>DOB</label>
+        <InputDate @bind-Value="contact.DOB" />
+
+        <label>Contact No</label>
+        <InputText @bind-Value="contact.ContactNo" />
+
+        <br /><br />
+
+        <button type="submit">Update</button>
+        <button type="button" @onclick="GoBack">Cancel</button>
+    </EditForm>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    tblContact? contact;
+    string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        contact = await Http.GetFromJsonAsync<tblContact>(
+            $"https://localhost:7122/api/Home/GetById?id={id}");
+    }
+
+    async Task UpdateContact()
+    {
+        var response = await Http.PutAsJsonAsync(
+            $"https://localhost:7122/api/Home/UpdateData",
+            contact);
+
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Contact updated successfully";
+            Nav.NavigateTo("/");
+        }
+        else
+        {
+            message = "Error updating contact";
+        }
+    }
+
+    void GoBack()
+    {
+        Nav.NavigateTo("/");
+    }
+}

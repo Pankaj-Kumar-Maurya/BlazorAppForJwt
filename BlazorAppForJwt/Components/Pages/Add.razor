@@ -1,0 +1,60 @@
+﻿@page "/add"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Add Contact</PageTitle>
+
+<h3>Add Contact</h3>
+
+<EditForm Model="contact" OnValidSubmit="SaveContact">
+    <DataAnnotationsValidator />
+
+    <label>Name</label>
+    <InputText @bind-Value="contact.Name" />
+
+    <label>City</label>
+    <InputText @bind-Value="contact.City" />
+
+    <label>Email</label>
+    <InputText @bind-Value="contact.Email" />
+
+    <label>DOB</label>
+    <InputDate @bind-Value="contact.DOB" />
+
+    <label>Contact No</label>
+    <InputText @bind-Value="contact.ContactNo" />
+
+    <br /><br />
+    <button type="submit">Save</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    tblContact contact = new();
+    string message = "";
+
+    private async Task SaveContact()
+    {
+        var response = await Http.PostAsJsonAsync(
+            "https://localhost:7122/api/Home/SavaData",
+            contact);
+
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Contact saved successfully";
+            contact = new(); // clear form
+                            
+            Nav.NavigateTo("/");
+
+        }
+        else
+        {
+            message = "Error saving contact";
+        }
+    }
+}

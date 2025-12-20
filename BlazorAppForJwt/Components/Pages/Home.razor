@@ -1,0 +1,80 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+@if (data == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ContactId</th>
+                <th>Name</th>
+                <th>City</th>
+                <th>Email</th>
+                <th>DOB</th>
+                <th>ContactNo</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in data)
+            {
+                <tr>
+                    <td>@item.ContactID</td>
+                    <td>@item.Name</td>
+                    <td>@item.City</td>
+                    <td>@item.Email</td>
+                    <td>@item.DOB.ToShortDateString()</td>
+                    <td>@item.ContactNo</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary"
+                                @onclick="() => EditContact(item.ContactID)">
+                            Edit
+                        </button>
+                    </td>
+
+                    <td>
+                        <button class="btn btn-sm btn-danger"
+                                @onclick="() => DeleteContact(item.ContactID)">
+                            Delete
+                        </button>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    List<tblContact>? data;
+
+    protected override async Task OnInitializedAsync()
+    {
+        data = await Http.GetFromJsonAsync<List<tblContact>>(
+            "https://localhost:7122/api/Home/GetAll");
+    }
+    void EditContact(int id)
+    {
+        Nav.NavigateTo($"/edit-contact/{id}");
+    }
+
+    async Task DeleteContact(int id)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "Are you sure?"))
+            return;
+
+        await Http.DeleteAsync($"https://localhost:7122/api/Home/Delete?id={id}");
+        data.RemoveAll(x => x.ContactID == id);
+    }
+}
