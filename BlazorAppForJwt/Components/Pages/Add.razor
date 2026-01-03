@@ -40,8 +40,8 @@
 
     private async Task SaveContact()
     {
-        var response = await Http.PostAsJsonAsync(
-            "https://localhost:7122/api/Home/SavaData",
+        var response = await AuthClient.Client.PostAsJsonAsync(
+            "api/Home/SavaData",
             contact);
 
         if (response.IsSuccessStatusCode)
@@ -49,7 +49,7 @@
             message = "Contact saved successfully";
             contact = new(); // clear form
                             
-            Nav.NavigateTo("/");
+            Nav.NavigateTo("/home");
 
         }
         else

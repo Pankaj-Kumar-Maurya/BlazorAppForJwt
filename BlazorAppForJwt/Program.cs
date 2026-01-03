@@ -1,20 +1,32 @@
 using BlazorAppForJwt.Components;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// -------------------- SERVICES --------------------
+
+// Razor Components (Blazor Web App)
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Protected Storage (JWT storage)
+builder.Services.AddScoped<ProtectedSessionStorage>();
+
 builder.Services.AddHttpClient();
+
+// Your JWT-aware HttpClient wrapper
+builder.Services.AddScoped<AuthHttpClient>();
+
+// -------------------- APP --------------------
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 

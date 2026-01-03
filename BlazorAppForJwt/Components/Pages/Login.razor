@@ -1,0 +1,52 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject NavigationManager Nav
+@inject ProtectedSessionStorage SessionStorage
+
+<h3>Login</h3>
+
+<input @bind="login.Username" placeholder="Username" />
+<br />
+<input @bind="login.Password" placeholder="Password" type="password" />
+<br />
+<button @onclick="DoLogin">Login</button>
+<span style="color:red">@message</span>
+@code {
+    LoginModel login = new();
+    string message = string.Empty;
+    async Task DoLogin()
+    {
+        var response = await AuthClient.Client.PostAsJsonAsync(
+            "api/auth/login", login);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content
+                .ReadFromJsonAsync<TokenResponse>();
+
+            await SessionStorage.SetAsync("jwt", result!.token);
+
+            Nav.NavigateTo("/home", forceLoad: true);
+        }
+        else
+        {
+            message = "Login failed";
+            StateHasChanged();
+            // Auto hide after 2 seconds
+            await Task.Delay(2000);
+            message = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    class LoginModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    class TokenResponse
+    {
+        public string token { get; set; } = string.Empty;
+    }
+}

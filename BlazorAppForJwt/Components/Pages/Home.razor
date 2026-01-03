@@ -1,5 +1,5 @@
-﻿@page "/"
-@inject HttpClient Http
+﻿@page "/home"
+
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
@@ -58,12 +58,25 @@ else
 }
 @code {
     List<tblContact>? data;
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        data = await Http.GetFromJsonAsync<List<tblContact>>(
-            "https://localhost:7122/api/Home/GetAll");
+        if (firstRender)
+        {
+            await AuthClient.LoadTokenAsync();
+
+            data = await AuthClient.Client.GetFromJsonAsync<List<tblContact>>(
+                "api/Home/GetAll");
+
+            StateHasChanged();
+        }
     }
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     var client = await AuthClient.GetClientAsync();
+    //     data = await client.GetFromJsonAsync<List<tblContact>>(
+    //         "api/Home/GetAll");
+    // }
     void EditContact(int id)
     {
         Nav.NavigateTo($"/edit-contact/{id}");
@@ -73,8 +86,8 @@ else
     {
         if (!await JS.InvokeAsync<bool>("confirm", "Are you sure?"))
             return;
-
-        await Http.DeleteAsync($"https://localhost:7122/api/Home/Delete?id={id}");
+        await AuthClient.LoadTokenAsync();
+        await AuthClient.Client.DeleteAsync($"api/Home/Delete?id={id}");
         data.RemoveAll(x => x.ContactID == id);
     }
 }

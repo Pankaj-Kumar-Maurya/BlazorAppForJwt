@@ -1,5 +1,4 @@
 ﻿@page "/edit-contact/{id:int}"
-@inject HttpClient Http
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 <PageTitle>Edit Contact</PageTitle>
@@ -47,32 +46,43 @@ else
 
     tblContact? contact;
     string message = "";
-
-    protected override async Task OnInitializedAsync()
+    bool _loaded;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        contact = await Http.GetFromJsonAsync<tblContact>(
-            $"https://localhost:7122/api/Home/GetById?id={id}");
+        if (firstRender && !_loaded)
+        {
+            _loaded = true;
+
+            await AuthClient.LoadTokenAsync();   // ✅ SAFE PLACE
+
+            contact = await AuthClient.Client.GetFromJsonAsync<tblContact>(
+                $"api/Home/GetById?id={id}");
+
+            StateHasChanged();
+        }
     }
 
     async Task UpdateContact()
     {
-        var response = await Http.PutAsJsonAsync(
-            $"https://localhost:7122/api/Home/UpdateData",
+       
+        var response = await AuthClient.Client.PutAsJsonAsync(
+            $"api/Home/UpdateData",
             contact);
 
         if (response.IsSuccessStatusCode)
         {
             message = "Contact updated successfully";
-            Nav.NavigateTo("/");
+            Nav.NavigateTo("/home");
         }
         else
         {
             message = "Error updating contact";
         }
-    }
-
+    }    
     void GoBack()
     {
-        Nav.NavigateTo("/");
+        Nav.NavigateTo("/home");
     }
+    //Above is same as
+    //void GoBack() => Nav.NavigateTo("/");
 }
